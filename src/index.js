@@ -1,12 +1,5 @@
 const axios = require('axios');
 const TelegramBot = require('node-telegram-bot-api');
-const { createCanvas } = require('canvas');
-const fs = require('fs');
-const path = require('path');
-const { Chart, registerables } = require('chart.js');
-
-// Register the required Chart.js components
-Chart.register(...registerables);
 
 require('dotenv').config();
 
@@ -19,7 +12,8 @@ const bot = new TelegramBot(token, {polling: true});
 // Set bot commands so they appear in the menu
 bot.setMyCommands([
     { command: '/get_tvls', description: 'Get the current TVLs for Raindex protocol' },
-    { command: '/get_volume', description: 'Get the latest volume data for Raindex' } // New command for volume data
+    { command: '/get_volume', description: 'Get the total volume data for Raindex' },
+    { command: '/get_daily_volume', description: 'Get daily volume per chain for a protocol' } 
 ]);
 
 // Handler function to query the Llama API and send parsed data as a pie chart and TVL numbers
@@ -125,7 +119,6 @@ bot.onText(/\/get_tvls/, async (msg) => {
     }
 });
 
-
 // Handler function to query the Llama API and send volume data for Raindex
 bot.onText(/\/get_volume/, async (msg) => {
     const chatId = msg.chat.id;
@@ -158,5 +151,96 @@ bot.onText(/\/get_volume/, async (msg) => {
     } catch (error) {
         console.error('Error fetching volume data:', error);
         bot.sendMessage(chatId, 'Sorry, there was an error fetching the volume data.');
+    }
+});
+
+// Handler function to query DeFiLlama API and get daily volume per chain using stacked bar chart
+bot.onText(/\/get_daily_volume/, async (msg) => {
+    const chatId = msg.chat.id;
+
+    try {
+        // Replace 'raindex' with any protocol slug you'd like to fetch
+        const protocolSlug = 'raindex';
+
+        // Fetch the daily volume per chain for the protocol
+        const response = await axios.get(`https://api.llama.fi/summary/dexs/${protocolSlug}?excludeTotalDataChart=false&excludeTotalDataChartBreakdown=false&dataType=dailyVolume`);
+
+        const volumeData = response.data;
+
+        // Extract total volume and per-chain breakdown from totalDataChart and totalDataChartBreakdown
+        const totalDataChartBreakdown = volumeData.totalDataChartBreakdown;  // Per-chain daily volume breakdown
+
+        // Get the second last entry from totalDataChartBreakdown for the most recent day
+        const recentBreakdown = totalDataChartBreakdown[totalDataChartBreakdown.length - 2][1]; // Second last entry for per-chain volume
+
+        // Prepare data for the bar chart and message
+        const chainNames = Object.keys(recentBreakdown); // Get chain names from breakdown keys
+        const chainVolumes = chainNames.map(chain => recentBreakdown[chain].Raindex || 0); // Get the Raindex volume for each chain
+
+        let totalVolume = 0;
+        let volumeMessage = `📊 ${volumeData.name} Protocol - 24h Volume Per Chain (USD):\n\n`;
+
+        // Generate message for each chain's volume
+        chainNames.forEach((chain, index) => {
+            const chainVolume = chainVolumes[index];
+            totalVolume += chainVolume;
+            volumeMessage += `🔹 ${chain}: $${chainVolume.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\n`;
+        });
+
+        // Add total 24h volume to the message
+        volumeMessage += `\n🌍 Total 24h Volume (USD): $${totalVolume.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+        // Create the stacked bar chart using QuickChart.io
+        const chartUrl = `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify({
+            type: 'bar',
+            data: {
+                labels: ['24h Volume'], // Only one day, so we just label it as "24h Volume"
+                datasets: chainNames.map((chain, index) => ({
+                    label: chain,
+                    data: [chainVolumes[index]], // Single data point for each chain
+                    backgroundColor: [
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF'
+                    ][index % 7] // Different colors for each chain
+                }))
+            },
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `${volumeData.name} - Stacked 24h Volume Per Chain`,
+                        font: {
+                            size: 18
+                        }
+                    },
+                    legend: {
+                        display: true
+                    }
+                },
+                scales: {
+                    xAxes: [{
+                        stacked: true // Enable stacking for X-axis
+                    }],
+                    yAxes: [{
+                        stacked: true, // Enable stacking for Y-axis
+                        ticks: {
+                            beginAtZero: true,
+                            callback: function(value) {
+                                return '$' + value.toLocaleString(); // Add dollar signs to Y-axis values
+                            }
+                        }
+                    }]
+                }
+            }
+        }))}`;
+
+        // Send the stacked bar chart to the user
+        bot.sendPhoto(chatId, chartUrl, { caption: `${volumeData.name} - Stacked 24h Volume per Chain` });
+
+        // Send the detailed 24h volume data as a text message
+        bot.sendMessage(chatId, volumeMessage);
+
+    } catch (error) {
+        console.error('Error fetching daily volume data:', error);
+        bot.sendMessage(chatId, 'Sorry, there was an error fetching the daily volume data.');
     }
 });
