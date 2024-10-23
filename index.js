@@ -6,7 +6,7 @@ require('dotenv').config();
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { webHook: true });
 
 // Set webhook for Vercel
-const webhookURL = 'https://raindex-tg-m0v2cbs6a-siddharth2207s-projects.vercel.app/api/bot';
+const webhookURL = 'https://raindex-tg-bot.vercel.app/api/bot';
 bot.setWebHook(webhookURL);
 
 // Set bot commands so they appear in the menu
