@@ -1,15 +1,18 @@
 services:
   arb_bot:
-    image: rainprotocol/raindex-tg-bot:${DOCKER_CHANNEL}
-    env_file: .env
-    restart: always
+    image: rainprotocol/raindex-tg-bot:${DOCKER_CHANNEL} # Ensure DOCKER_CHANNEL is set or provide a default tag
+    env_file: .env # Load environment variables from .env file
+    restart: always # Automatically restart the bot if it crashes
     logging:
-      driver: local
-    pull_policy: always
+      driver: "local" # Logging driver set to local (could also be json-file)
     volumes:
-      - "rainprotocol-raindex-tg-bot:/etc/rainprotocol/raindex-tg-bot:Z"
+      - rainprotocol-raindex-tg-bot:/etc/rainprotocol/raindex-tg-bot:Z # Ensure SELinux is enabled if using :Z
+    # Remove pull_policy (or use deploy if you're using Docker Swarm)
+    deploy:
+      restart_policy:
+        condition: on-failure
 
 volumes:
   rainprotocol-raindex-tg-bot:
-    external: true
+    external: true # External volume, ensure it's created
     name: rainprotocol-raindex-tg-bot-${DOCKER_CHANNEL}
