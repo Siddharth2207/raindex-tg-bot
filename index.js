@@ -1,7 +1,23 @@
 const axios = require('axios');
 const TelegramBot = require('node-telegram-bot-api');
+const express = require('express');
+require('dotenv').config()
+const app = express();
 
-require('dotenv').config();
+app.use(express.json());
+
+app.get('/', (req, res) => {
+    res.send('Raindex Telegram Bot is running!');
+});
+
+app.post('/', (req, res) => {
+    res.send('Raindex Telegram Bot is running!');
+});
+
+const port = process.env.PORT || 4040;
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
 
 // replace the value below with the Telegram token you receive from @BotFather
 const token = process.env.TELEGRAM_BOT_TOKEN;
