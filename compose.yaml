@@ -1,0 +1,15 @@
+services:
+  arb_bot:
+    image: rainprotocol/raindex-tg-bot:${DOCKER_CHANNEL}
+    env_file: .env
+    restart: always
+    logging:
+      driver: local
+    pull_policy: always
+    volumes:
+      - "rainprotocol-raindex-tg-bot:/etc/rainprotocol/raindex-tg-bot:Z"
+
+volumes:
+  rainprotocol-raindex-tg-bot:
+    external: true
+    name: rainprotocol-raindex-tg-bot-${DOCKER_CHANNEL}
