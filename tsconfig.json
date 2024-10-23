@@ -1,10 +1,10 @@
 {
-  "include": ["./"],
-  "exclude": ["node_modules/*"],
   "compilerOptions": {
-    "target": "ES2020",
-    "esModuleInterop": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true
+    "module": "commonjs", // Ensure this is set for Node.js
+    "target": "es6",
+    "esModuleInterop": true, // Enable interoperability with CommonJS modules
+    "skipLibCheck": true, // Optional, can help avoid some type-checking errors
+    "outDir": "./dist",   // Transpile to `dist` folder
+    "strict": true        // Ensure strict mode is enabled
   }
 }

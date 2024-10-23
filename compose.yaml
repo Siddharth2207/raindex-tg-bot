@@ -5,12 +5,9 @@ services:
     restart: always # Automatically restart the bot if it crashes
     logging:
       driver: "local" # Logging driver set to local (could also be json-file)
+    pull_policy: always
     volumes:
       - rainprotocol-raindex-tg-bot:/etc/rainprotocol/raindex-tg-bot:Z # Ensure SELinux is enabled if using :Z
-    # Remove pull_policy (or use deploy if you're using Docker Swarm)
-    deploy:
-      restart_policy:
-        condition: on-failure
 
 volumes:
   rainprotocol-raindex-tg-bot:

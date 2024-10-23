@@ -1,28 +1,22 @@
-# Use the official Node.js image as the base image
 FROM node:20
 
-# Set build-time arguments for Git SHA and Docker tag
+# Set git sha and docker tag from build-time args to runtime env variables in the container
 ARG GIT_SHA
 ARG DOCKER_CHANNEL
-
-# Set them as environment variables in the running container
 ENV GIT_COMMIT=$GIT_SHA
 ENV DOCKER_TAG=$DOCKER_CHANNEL
 
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /rain-defillama
 
-# Copy package.json and package-lock.json first (for better caching)
-COPY package*.json ./
+# Add all files from the current directory to the container
+ADD . .
 
-# Install dependencies (use npm ci if deploying for production)
+# Install dependencies
 RUN npm install
 
-# Copy the rest of the application code
-COPY . .
+# Build the TypeScript files (transpile TypeScript to JavaScript)
+RUN npm run build
 
-# Install ts-node globally (if ts-node is used)
-RUN npm install -g ts-node
-
-# Command to run the application
-CMD ["ts-node", "index.ts"]
+# Specify the command to run the application
+CMD node dist/index.js
