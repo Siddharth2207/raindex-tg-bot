@@ -1,11 +1,10 @@
 {
-    "compilerOptions": {
-      "module": "commonjs",
-      "esModuleInterop": true,
-      "target": "es6",
-      "moduleResolution": "node",
-      "sourceMap": true,
-      "outDir": "dist"
-    },
-    "lib": ["es2015"]
+  "compilerOptions": {
+    "module": "commonjs", // Ensure this is set for Node.js
+    "target": "es6",
+    "esModuleInterop": true, // Enable interoperability with CommonJS modules
+    "skipLibCheck": true, // Optional, can help avoid some type-checking errors
+    "outDir": "./dist",   // Transpile to `dist` folder
+    "strict": true        // Ensure strict mode is enabled
   }
+}

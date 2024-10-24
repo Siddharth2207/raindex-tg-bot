@@ -1,0 +1,15 @@
+services:
+  arb_bot:
+    image: rainprotocol/raindex-tg-bot:${DOCKER_CHANNEL} # Ensure DOCKER_CHANNEL is set or provide a default tag
+    env_file: .env # Load environment variables from .env file
+    restart: always # Automatically restart the bot if it crashes
+    logging:
+      driver: "local" # Logging driver set to local (could also be json-file)
+    pull_policy: always
+    volumes:
+      - rainprotocol-raindex-tg-bot:/etc/rainprotocol/raindex-tg-bot:Z # Ensure SELinux is enabled if using :Z
+
+volumes:
+  rainprotocol-raindex-tg-bot:
+    external: true # External volume, ensure it's created
+    name: rainprotocol-raindex-tg-bot-${DOCKER_CHANNEL}
